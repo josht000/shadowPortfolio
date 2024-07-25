@@ -42,20 +42,19 @@ class BatchOrder():
                                                 consumer_secret,
                                                 tokens['oauth_token'],
                                                 tokens['oauth_token_secret'])
+        
+        # get accounts for this user
         accts = self.accounts.list_accounts()['AccountListResponse']['Accounts']['Account']
         print(f'Num total Account: {len(accts)}')
-        accts = [x for x in accts if x['accountStatus'] == 'ACTIVE']
-        
-        print('Name         Desc             Type         Mode   ID')
-        print('------------------------------------------------------------')
-        for x in accts:
-            name = x['accountName']
-            desc = x['accountDesc']
-            _type = x['accountType']
-            mode = x['accountMode']
-            id = x['accountId']
-            print(f'{name:12s} {desc:16s} {_type:12s} {mode:6s} {id:12s}')
-        
+            
+        act_accts = [x for x in accts if x['accountStatus'] == 'ACTIVE']
+        print(f'Num active accounts: {len(act_accts)}')
+
+        self.printAccounts(act_accts) # print summary
+
+        # FIX
+        # self.getAccountBal(act_accts)
+
     def saveTokens(self, tokens):
         dir = Path('.cache')
         dir.mkdir(exist_ok=True)
@@ -74,6 +73,25 @@ class BatchOrder():
                 print(f'Loaded keys={js}')
                 return js
         else: return None
+
+    def printAccounts(self, accts):
+        if self.accounts:
+            print(f'---- ACCOUNT SUMMARY ----')
+            print('Name         Desc             Type         Mode   ID')
+            print('------------------------------------------------------------')
+            for x in accts:
+                name = x['accountName']
+                desc = x['accountDesc']
+                _type = x['accountType']
+                mode = x['accountMode']
+                id = x['accountId']
+                print(f'{name:12s} {desc:16s} {_type:12s} {mode:6s} {id:12s}')
+                
+    def getAccountBal(self, accts):
+        for x in accts:
+            id = x['accountId']
+            ret = self.accounts.get_account_balance(id)
+            print(f'ret={ret}\n')
 
 def main():
     # Parse args
